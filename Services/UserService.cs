@@ -12,7 +12,8 @@ public class UserService
     private readonly IUserRepository _repo;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IValidator<CreateUserDto> _validator;
-
+    
+    //constructor de toda la vida
     public UserService(IUserRepository repo, IUnitOfWork unitOfWork, IValidator<CreateUserDto> validator)
     {
         _repo = repo;
@@ -45,4 +46,36 @@ public class UserService
         
         return Result<UserResponseDto>.Success(new UserResponseDto(user.Id,user.name,user.email));
     }
+
+    public async Task<Result<List<UserResponseDto>>>FindAllUsers()
+    {
+        var users = await _repo.FindAll();
+
+        var dtos = users.Select(u => new UserResponseDto(
+            u.Id,
+            u.name,
+            u.email
+        )).ToList();
+        
+        return Result<List<UserResponseDto>>.Success(dtos);
+    }
+
+    public async Task<Result<UserResponseDto>> FindByEmail(string email)
+    {
+        var user = await _repo.GetByEmailAsync(email);
+
+        if (user == null)
+        {
+            return Result<UserResponseDto>.Failure("El usuario no existe.");
+        }
+        
+        var dto = new UserResponseDto(
+                user.Id,
+                user.name,
+                user.email
+            );
+        
+        return Result<UserResponseDto>.Success(dto);
+    }
+    
 }
