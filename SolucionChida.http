@@ -1,0 +1,6 @@
+@SolucionChida_HostAddress = http://localhost:5226
+
+GET {{SolucionChida_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
