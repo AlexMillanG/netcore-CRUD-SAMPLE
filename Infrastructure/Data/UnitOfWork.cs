@@ -1,6 +1,14 @@
-namespace SolucionChida.Infrastructure.Data;
+using SolucionChida.Domain.Interfaces;
 
-public class UnitOfWork
+namespace SolucionChida.Infrastructure.Data;
+ 
+public class UnitOfWork : IUnitOfWork
 {
+    private readonly AppDbContext _context;
+
+    public UnitOfWork(AppDbContext context) => context = _context; 
+    
+    public async Task<int> SaveChangesAsync()=>
+        await _context.SaveChangesAsync();
     
 }

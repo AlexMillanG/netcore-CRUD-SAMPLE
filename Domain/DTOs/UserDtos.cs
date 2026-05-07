@@ -1,6 +1,5 @@
 namespace SolucionChida.Domain.DTOs;
 
-public class UserDTO
-{
-    
-}
+public record CreateUserDto(string Name, string Email);
+
+public record UserResponseDto(int Id, string Name, string Email);   

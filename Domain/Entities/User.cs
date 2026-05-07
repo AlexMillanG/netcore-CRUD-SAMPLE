@@ -1,6 +1,8 @@
 namespace SolucionChida.Domain.Entities;
 
-public class User
-{
-    
+public class User {
+    public int Id { get; set; }
+    public string name { get; set; } = string.Empty;
+    public string email { get; set; } = string.Empty;
+    public DateTime CreatedAt{ get; set; }
 }
