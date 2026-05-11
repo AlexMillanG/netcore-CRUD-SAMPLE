@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SolucionChida.Domain.DTOs;
 using SolucionChida.Services;
@@ -33,7 +31,7 @@ public class UserController : ControllerBase
             : BadRequest(new { error = result.Error });
     }
 
-    [HttpGet("{email}")]
+    [HttpGet("/email/{email}")]
     public async Task<IActionResult> FindByEmail(string email)
     {
         var result = await _service.FindByEmail(email);
@@ -41,5 +39,32 @@ public class UserController : ControllerBase
             ? Ok( result.Value)
             : BadRequest(new { error = result.Error });
 
+    }
+    
+    [HttpGet("{id}")]
+    public async Task<IActionResult> FindByEmail(int id)
+    {
+        var result = await _service.FindById(id);
+        return result.IsSuccess
+            ? Ok( result.Value)
+            : BadRequest(new { error = result.Error });
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateUserDto dto)
+    {
+        var result = await _service.UpdateUserAsync(dto, id);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : BadRequest(new { error = result.Error });
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var result = await _service.DeleteAsync(id);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : BadRequest(new { error = result.Error });
     }
 }

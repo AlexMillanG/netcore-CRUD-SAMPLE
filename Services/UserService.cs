@@ -1,5 +1,5 @@
 using FluentValidation;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.OpenApi.Any;
 using SolucionChida.Common;
 using SolucionChida.Domain.DTOs;
 using SolucionChida.Domain.Entities;
@@ -12,41 +12,20 @@ public class UserService
     private readonly IUserRepository _repo;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IValidator<CreateUserDto> _validator;
-    
-    //constructor de toda la vida
-    public UserService(IUserRepository repo, IUnitOfWork unitOfWork, IValidator<CreateUserDto> validator)
+    private readonly IValidator<UpdateUserDto> _updateValidator;
+
+    public UserService(
+        IUserRepository repo,
+        IUnitOfWork unitOfWork,
+        IValidator<CreateUserDto> validator,
+        IValidator<UpdateUserDto> updateValidator)
     {
         _repo = repo;
         _unitOfWork = unitOfWork;
         _validator = validator;
+        _updateValidator = updateValidator;
     }
-
-    public async Task<Result<UserResponseDto>> CreateUserAsync(CreateUserDto dto)
-    {
-        var validation = await _validator.ValidateAsync(dto);
-        if (!validation.IsValid)
-        {
-            return Result<UserResponseDto>.Failure(validation.Errors.First().ErrorMessage);
-        }
-
-        if (await _repo.GetByEmailAsync(dto.Email) != null)
-        {
-            return Result<UserResponseDto>.Failure("this email is already taken");
-        }
-
-        var user = new User
-        {
-            email = dto.Email,
-            name = dto.Name,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        await _repo.AddAsync(user);
-        await _unitOfWork.SaveChangesAsync();
-        
-        return Result<UserResponseDto>.Success(new UserResponseDto(user.Id,user.name,user.email));
-    }
-
+    
     public async Task<Result<List<UserResponseDto>>>FindAllUsers()
     {
         var users = await _repo.FindAll();
@@ -76,6 +55,91 @@ public class UserService
             );
         
         return Result<UserResponseDto>.Success(dto);
+    }
+    
+    public async Task<Result<UserResponseDto>> FindById(int id)
+    {
+        var user = await _repo.GetByIdAsync(id);
+
+        if (user == null)
+        {
+            return Result<UserResponseDto>.Failure("El usuario no existe.");
+        }
+        
+        var dto = new UserResponseDto(
+            user.Id,
+            user.name,
+            user.email
+        );
+        
+        return Result<UserResponseDto>.Success(dto);
+    }
+    
+    public async Task<Result<UserResponseDto>> CreateUserAsync(CreateUserDto dto)
+    {
+        var validation = await _validator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            return Result<UserResponseDto>.Failure(validation.Errors.First().ErrorMessage);
+        }
+
+        if (await _repo.GetByEmailAsync(dto.Email) != null)
+        {
+            return Result<UserResponseDto>.Failure("this email is already taken");
+        }
+
+        var user = new User
+        {
+            email = dto.Email,
+            name = dto.Name,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _repo.AddAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+        
+        return Result<UserResponseDto>.Success(new UserResponseDto(user.Id,user.name,user.email));
+    }
+
+    public async Task<Result<UserResponseDto>> UpdateUserAsync(UpdateUserDto dto, int id)
+    {
+        var validation = await _updateValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return Result<UserResponseDto>.Failure(validation.Errors.First().ErrorMessage);
+
+        var user = await _repo.GetByIdAsync(id);
+        if (user == null)
+            return Result<UserResponseDto>.Failure("User not found.");
+        
+        var emailOwner = await _repo.GetByEmailAsync(dto.Email);
+        if (emailOwner != null && emailOwner.Id != id)
+            return Result<UserResponseDto>.Failure("This email is already taken.");
+
+        user.name = dto.Name;
+        user.email = dto.Email;
+
+        await _repo.UpdateAsync(user, id);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result<UserResponseDto>.Success(new UserResponseDto(user.Id, user.name, user.email));
+    }
+
+    public async Task<Result<UserResponseDto>> DeleteAsync(int id)
+    {
+        var found = await _repo.GetByIdAsync(id);
+
+        if (found == null)
+        {
+            return Result<UserResponseDto>.Failure("El usuario no existe.");
+        }
+
+        var response = new UserResponseDto (found.Id, found.email, found.name);
+        
+
+        await _repo.DeleteAsync(id);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result<UserResponseDto>.Success(response);
     }
     
 }

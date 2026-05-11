@@ -20,8 +20,23 @@ public class UserRepository : IUserRepository
     public async Task<List<User>> FindAll() =>
         await _context.Users.ToListAsync();
     
-
-
     public async Task AddAsync(User user) =>
         await _context.Users.AddAsync(user);
+
+    public async Task UpdateAsync(User user, int id)
+    {
+        var existingUser = await _context.Users.FirstOrDefaultAsync(u=> u.Id == id);
+
+        if (existingUser == null)
+        {
+            return;
+        }
+
+        existingUser.name = user.name;
+        existingUser.email = user.email;
+        
+    }
+
+    public async Task DeleteAsync(int id) =>
+        await _context.Users.Where(user => user.Id == id ).ExecuteDeleteAsync();
 }
