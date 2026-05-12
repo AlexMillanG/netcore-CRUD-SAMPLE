@@ -8,12 +8,21 @@ public class CreateUserValidator : AbstractValidator<CreateUserDto>
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name required")
-            .MinimumLength(3).WithMessage("Minimum lenght is 3");
+            .MinimumLength(3).WithMessage("Minimum length is 3");
+
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email is required")
-            .EmailAddress().WithMessage("Invalid Email Address");
+            .EmailAddress().WithMessage("Invalid email address");
+
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password required").MinimumLength(6).WithMessage("minimum length is 6");
+            .NotEmpty().WithMessage("Password required")
+            .MinimumLength(6).WithMessage("Minimum length is 6");
+
+        RuleFor(x => x.RolesId)
+            .NotEmpty().WithMessage("At least one role is required");
+
+        RuleForEach(x => x.RolesId)
+            .GreaterThan(0).WithMessage("Invalid role id");
     }
 }
 
@@ -27,5 +36,6 @@ public class UpdateUserValidator : AbstractValidator<UpdateUserDto>
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email is required")
             .EmailAddress().WithMessage("Invalid email address");
+        
     }
 }
