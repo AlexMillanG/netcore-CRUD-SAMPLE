@@ -10,16 +10,19 @@ namespace SolucionChida.Services;
 public class UserService
 {
     private readonly IUserRepository _repo;
+    private readonly IRoleRepository _roleRepo;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IValidator<CreateUserDto> _validator;
     private readonly IValidator<UpdateUserDto> _updateValidator;
 
     public UserService(
+        IRoleRepository roleRepo,
         IUserRepository repo,
         IUnitOfWork unitOfWork,
         IValidator<CreateUserDto> validator,
         IValidator<UpdateUserDto> updateValidator)
     {
+        _roleRepo = roleRepo;
         _repo = repo;
         _unitOfWork = unitOfWork;
         _validator = validator;
@@ -33,7 +36,8 @@ public class UserService
         var dtos = users.Select(u => new UserResponseDto(
             u.Id,
             u.name,
-            u.email
+            u.email,
+            u.Roles
         )).ToList();
         
         return Result<List<UserResponseDto>>.Success(dtos);
@@ -51,7 +55,8 @@ public class UserService
         var dto = new UserResponseDto(
                 user.Id,
                 user.name,
-                user.email
+                user.email,
+                user.Roles
             );
         
         return Result<UserResponseDto>.Success(dto);
@@ -69,7 +74,8 @@ public class UserService
         var dto = new UserResponseDto(
             user.Id,
             user.name,
-            user.email
+            user.email,
+            user.Roles
         );
         
         return Result<UserResponseDto>.Success(dto);
@@ -88,17 +94,23 @@ public class UserService
             return Result<UserResponseDto>.Failure("this email is already taken");
         }
 
+        var userRoles = await _roleRepo.GetByIdsAsync(dto.RolesId);
+        if (userRoles.Count != dto.RolesId.Count)
+            return Result<UserResponseDto>.Failure("One or more roles are invalid.");
+
         var user = new User
         {
             email = dto.Email,
             name = dto.Name,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            Roles = userRoles,
+            PasswordHashed = BCrypt.Net.BCrypt.HashPassword(dto.Password)
         };
 
         await _repo.AddAsync(user);
         await _unitOfWork.SaveChangesAsync();
         
-        return Result<UserResponseDto>.Success(new UserResponseDto(user.Id,user.name,user.email));
+        return Result<UserResponseDto>.Success(new UserResponseDto(user.Id,user.name,user.email,user.Roles));
     }
 
     public async Task<Result<UserResponseDto>> UpdateUserAsync(UpdateUserDto dto, int id)
@@ -121,7 +133,7 @@ public class UserService
         await _repo.UpdateAsync(user, id);
         await _unitOfWork.SaveChangesAsync();
 
-        return Result<UserResponseDto>.Success(new UserResponseDto(user.Id, user.name, user.email));
+        return Result<UserResponseDto>.Success(new UserResponseDto(user.Id, user.name, user.email,user.Roles));
     }
 
     public async Task<Result<UserResponseDto>> DeleteAsync(int id)
@@ -133,7 +145,7 @@ public class UserService
             return Result<UserResponseDto>.Failure("El usuario no existe.");
         }
 
-        var response = new UserResponseDto (found.Id, found.email, found.name);
+        var response = new UserResponseDto (found.Id, found.email, found.name, found.Roles);
         
 
         await _repo.DeleteAsync(id);
