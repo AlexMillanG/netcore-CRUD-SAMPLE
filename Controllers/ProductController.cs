@@ -16,7 +16,6 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet]
-
     public async Task<IActionResult> FindAllProducts()
     {
         var result = await _service.FindAll();
@@ -57,6 +56,13 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> Save([FromBody] CreateProductDto dto)
     {
         var result = await _service.SaveProduct(dto);
+        return result.IsSuccess ? Ok(result) : BadRequest(new { error = result.Error });
+    }
+
+    [HttpGet("category/{id}")]
+    public async Task<IActionResult> GetByCategory(int id)
+    {
+        var result = await _service.GetByCategory(id);
         return result.IsSuccess ? Ok(result) : BadRequest(new { error = result.Error });
     }
 }

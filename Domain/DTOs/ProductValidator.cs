@@ -9,6 +9,7 @@ public class CreateProductValidator : AbstractValidator<CreateProductDto>
         RuleFor(x => x.Name).NotEmpty().WithMessage("The name is required").MinimumLength(3).WithMessage("The name must have at least 3 characters");
         RuleFor(x => x.Sku).NotEmpty().WithMessage("The Sku is required").MinimumLength(3).WithMessage("The sku must have at least 3 characters");
         RuleFor(x => x.Description).NotEmpty().WithMessage("The Description is required").MinimumLength(3).WithMessage("The Description must have at least 3 characters");
+        RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("A valid category is required");
     }
 }
 
@@ -19,5 +20,6 @@ public class UpdateProductValidator : AbstractValidator<UpdateProductDto>
         RuleFor(x => x.Name).NotEmpty().WithMessage("The name is required").MinimumLength(3).WithMessage("The name must have at least 3 characters");
         RuleFor(x => x.Sku).NotEmpty().WithMessage("The Sku is required").MinimumLength(3).WithMessage("The sku must have at least 3 characters");
         RuleFor(x => x.Description).NotEmpty().WithMessage("The Description is required").MinimumLength(3).WithMessage("The Description must have at least 3 characters");
+        RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("A valid category is required");
     }
 }
