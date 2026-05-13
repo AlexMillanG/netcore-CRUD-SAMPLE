@@ -5,19 +5,18 @@ using SolucionChida.Services;
 namespace SolucionChida.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-public class ProductController : ControllerBase
+[Route("api/category")]
+public class CategoryController : ControllerBase
 {
-    private readonly ProductService _service;
+    private readonly CategoryService _service;
 
-    public ProductController(ProductService service)
+    public CategoryController(CategoryService service)
     {
         _service = service;
     }
 
     [HttpGet]
-
-    public async Task<IActionResult> FindAllProducts()
+    public async Task<IActionResult> FindAll()
     {
         var result = await _service.FindAll();
         return result.IsSuccess ? Ok(result) : BadRequest(new { error = result.Error });
@@ -26,37 +25,38 @@ public class ProductController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> FindById(int id)
     {
-        var result = await _service.FindByProductId(id);
-
+        var result = await _service.FindById(id);
         return result.IsSuccess ? Ok(result) : NotFound(new { error = result.Error });
     }
 
-    [HttpGet("sku/{sku}")]
-    public async Task<IActionResult> FindBySku(string sku)
+    [HttpGet("name/{name}")]
+    public async Task<IActionResult> FindByName(string name)
     {
-        var result = await _service.FindProductBySku(sku);
+        var result = await _service.FindByName(name);
         return result.IsSuccess ? Ok(result) : NotFound(new { error = result.Error });
-        
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteById(int id)
+    [HttpPost]
+    public async Task<IActionResult> Save([FromBody] CreateCategoryDto dto)
     {
-        var result = await _service.DeleteProduct(id);
+        var result = await _service.Save(dto);
         return result.IsSuccess ? Ok(result) : BadRequest(new { error = result.Error });
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateProductDto dto)
+    public async Task<IActionResult> Update([FromBody] UpdateCategoryDto dto, int id)
     {
-        var result = await _service.UpdateProduct(dto, id);
+        var result = await _service.Update(dto, id);
         return result.IsSuccess ? Ok(result) : BadRequest(new { error = result.Error });
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Save([FromBody] CreateProductDto dto)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
     {
-        var result = await _service.SaveProduct(dto);
+        var result = await _service.Delete(id);
         return result.IsSuccess ? Ok(result) : BadRequest(new { error = result.Error });
+        
     }
+    
+    
 }

@@ -31,7 +31,7 @@ public class UserController : ControllerBase
             : BadRequest(new { error = result.Error });
     }
 
-    [HttpGet("/email/{email}")]
+    [HttpGet("email/{email}")]
     public async Task<IActionResult> FindByEmail(string email)
     {
         var result = await _service.FindByEmail(email);
