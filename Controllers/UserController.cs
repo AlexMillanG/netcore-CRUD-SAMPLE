@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SolucionChida.Domain.DTOs;
 using SolucionChida.Services;
 
 namespace SolucionChida.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UserController : ControllerBase
@@ -13,6 +15,7 @@ public class UserController : ControllerBase
     public UserController(UserService service) =>
         _service = service;
 
+    [Authorize(Roles = "ADMIN,USER")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
     {
@@ -59,6 +62,7 @@ public class UserController : ControllerBase
             : BadRequest(new { error = result.Error });
     }
 
+    [Authorize(Roles = "ADMIN,USER")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

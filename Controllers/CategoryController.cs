@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SolucionChida.Domain.DTOs;
 using SolucionChida.Services;
 
 namespace SolucionChida.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/category")]
 public class CategoryController : ControllerBase
