@@ -62,7 +62,7 @@ public class UserController : ControllerBase
             : BadRequest(new { error = result.Error });
     }
 
-    [Authorize(Roles = "ADMIN,USER")]
+    [Authorize(Roles = "ADMIN")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
