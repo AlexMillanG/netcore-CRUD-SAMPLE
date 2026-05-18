@@ -1,6 +1,7 @@
 using System.Text;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -83,17 +84,51 @@ builder.Services.AddOpenApi(options =>
 
         return Task.CompletedTask;
     });
+
+    options.AddOperationTransformer((operation, context, cancellationToken) =>
+    {
+        var requiresAuth = context.Description.ActionDescriptor.EndpointMetadata
+            .OfType<AuthorizeAttribute>()
+            .Any();
+
+        if (requiresAuth)
+        {
+            operation.Security =
+            [
+                new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    }] = []
+                }
+            ];
+        }
+
+        return Task.CompletedTask;
+    });
 });
 var app = builder.Build();
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+    app.MapGet("/scalar/{documentName}/scalar.aspnetcore.js",
+        () => Results.Redirect("/scalar/scalar.aspnetcore.js"));
+    app.MapGet("/scalar/{documentName}/scalar.js",
+        () => Results.Redirect("/scalar/scalar.js"));
 }
-
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapControllers();
 
